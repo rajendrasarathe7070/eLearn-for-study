@@ -1,8 +1,9 @@
 # Django Framework
 Django==6.0.3
 
-# Database (SQLite3 - built-in, but including for clarity)
-# sqlite3 is included with Python
+# PostgreSQL Database Driver
+psycopg2-binary==2.9.9
+dj-database-url==2.1.0
 
 # Python Imaging Library (for image handling)
 Pillow

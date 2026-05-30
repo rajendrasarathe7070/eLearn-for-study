@@ -1,10 +1,7 @@
 import os
 from pathlib import Path
 
-# from sympy import false
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'
-# ✅ Correct way – no self‑import
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -15,7 +12,7 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [
     '*',
-    'localhost', 
+    'localhost',
     '127.0.0.1',
     '.onrender.com',
     'oasis-toolkit-evaluating-consultant.trycloudflare.com',
@@ -66,13 +63,40 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'minor.wsgi.application'
 
-# Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database Configuration - PostgreSQL
+if os.environ.get('DATABASE_URL'):
+    # Use DATABASE_URL if available (Render will set this)
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Fallback to manually configured PostgreSQL or SQLite for local development
+    if os.environ.get('DB_ENGINE') == 'postgresql':
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': os.environ.get('DB_NAME', 'elearn_db_m2bf'),
+                'USER': os.environ.get('DB_USER', 'elearn_user'),
+                'PASSWORD': os.environ.get('DB_PASSWORD', '9IVdZF0Xi29EGsvoPjJNkviIKwi8jarf'),
+                'HOST': os.environ.get('DB_HOST', 'dpg-d8dhnuv7f7vs73c8l3ig-a.onrender.com'),
+                'PORT': os.environ.get('DB_PORT', '5432'),
+                'CONN_MAX_AGE': 600,
+                'CONN_HEALTH_CHECKS': True,
+            }
+        }
+    else:
+        # SQLite for local development
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -107,12 +131,6 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # CSRF & Security for Cloudflare (HTTPS)
-# Use explicit origins (never '*') for CSRF trusted origins.
-# CSRF_TRUSTED_ORIGINS = [
-
-#     'https://oasis-toolkit-evaluating-consultant.trycloudflare.com',
-#     'https://can-vpn-carlo-locate.trycloudflare.com'
-# ]
 CSRF_TRUSTED_ORIGINS = [
     'https://*.trycloudflare.com',
 ]
@@ -128,6 +146,5 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 # Tell Django to trust Cloudflare proxy headers
 USE_X_FORWARDED_HOST = False
 SECURE_PROXY_SSL_HEADER = ('HTTPS_X_FORWARDED_PROTO', 'https')
-
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
